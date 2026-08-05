@@ -1,0 +1,17 @@
+{
+  "name": "Руслан Анисимов — AI Engineer",
+  "short_name": "Р. Анисимов",
+  "description": "AI Engineer. Автоматизация бизнес-процессов на Python, n8n и LLM.",
+  "lang": "ru",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#01060F",
+  "background_color": "#01060F",
+  "icons": [
+    { "src": "assets/favicon-32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "assets/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
