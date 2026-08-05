@@ -321,54 +321,76 @@ window.__initJelly = function(){
   if (window.__jellyInited) return; window.__jellyInited = true;
   var vids = [].slice.call(document.querySelectorAll('video[data-jelly]'));
   if (!vids.length) return;
-  // Медузы раскиданы по всей высоте страницы, но одновременно видно две-три.
-  // Держим декодер включённым только для тех, что реально на экране: восемь
-  // параллельных декодов H.264 - самая дорогая позиция на странице.
+  // Первый кадр медузы картинкой. Без него WebKit рисует на месте пустого
+  // видео свою заглушку с кнопкой play - её и было видно на iPhone, пока
+  // декодер занят. Строка одна на все элементы: семь копий в разметке весили
+  // бы под 70 КБ, а так - 10 КБ и ни одного лишнего запроса.
+  var POSTER = 'data:image/webp;base64,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';
+  vids.forEach(function(v){ v.poster = POSTER; });
+
   var play = function(v){ if (v.dataset.vis === '1' && v.paused){ var p = v.play(); if (p && p.catch) p.catch(function(){}); } };
-  var kick = function(list, url){
-    list.forEach(function(v){
-      var i = vids.indexOf(v);
-      v.muted = true; v.defaultMuted = true; v.loop = true; v.playsInline = true;
-      v.setAttribute('muted',''); v.src = url; v.load();
-      v.addEventListener('loadeddata', function(){
-        if (v.duration && isFinite(v.duration)) {
-          try { v.currentTime = (v.duration / vids.length) * i; } catch (e) {}
-        }
-        play(v);
-      }, { once:true });
+
+  // Файлов два: верхней медузе - исходное качество, она крупная и без
+  // размытия. Остальным облегчённый, вчетверо меньше, разницы там не видно.
+  // На телефоне облегчённый идёт всем: крупная частица там всё равно ужата.
+  var small = window.matchMedia && window.matchMedia('(max-width:900px)').matches;
+  var FILE = { hq:'assets/jelly.mp4', lite:'assets/jelly-lite.mp4' };
+  var qOf = function(v){ return (!small && v.dataset.jelly === 'hq') ? 'hq' : 'lite'; };
+
+  // Источник выдаём лениво - только тем частицам, что подъезжают к экрану.
+  // Телефон держит считанные аппаратные декодеры: если завести сразу семь,
+  // система начинает выгружать ушедшие за экран, и при возврате частица
+  // буферизуется заново. Это и выглядело как повторная загрузка, хотя файл
+  // качается ровно один раз. Скрытые на телефоне частицы с экраном не
+  // пересекаются никогда и декодер не занимают вовсе.
+  var ready = {}, waiting = {};
+  var attach = function(v){
+    if (v.dataset.on === '1') return;
+    var q = qOf(v);
+    if (!ready[q]) { (waiting[q] = waiting[q] || []).push(v); return; }
+    v.dataset.on = '1';
+    var i = vids.indexOf(v);
+    v.muted = true; v.defaultMuted = true; v.loop = true; v.playsInline = true;
+    v.setAttribute('muted','');
+    v.src = ready[q]; v.load();
+    v.addEventListener('loadeddata', function(){
+      if (v.duration && isFinite(v.duration)) {
+        try { v.currentTime = (v.duration / vids.length) * i; } catch (e) {}
+      }
       play(v);
-    });
+    }, { once:true });
+    play(v);
   };
-  // Два качества вместо одного: верхняя медуза крупная, чёткая и без размытия -
-  // ей исходное качество. Остальные мелкие или размытые, разницы там не видно,
-  // поэтому им облегчённый файл вчетверо меньше.
-  var load = function(url, list){
-    if (!list.length) return;
-    fetch(url).then(function(r){ return r.ok ? r.blob() : Promise.reject(r.status); })
-      .then(function(b){ kick(list, URL.createObjectURL(b)); })
-      .catch(function(){ kick(list, url); });
+  // Скачиваем каждый файл один раз и раздаём всем как объект в памяти -
+  // иначе семь элементов ушли бы в сеть каждый за своим запросом.
+  var fetchOnce = function(q){
+    if (ready[q] || waiting[q] === null) return;
+    waiting[q] = waiting[q] || [];
+    var done = function(url){
+      ready[q] = url;
+      var list = waiting[q]; waiting[q] = [];
+      list.forEach(attach);
+    };
+    fetch(FILE[q]).then(function(r){ return r.ok ? r.blob() : Promise.reject(r.status); })
+      .then(function(b){ done(URL.createObjectURL(b)); })
+      .catch(function(){ done(FILE[q]); });
   };
+  var need = {};
+  vids.forEach(function(v){ need[qOf(v)] = 1; });
+  Object.keys(need).forEach(fetchOnce);
+
   if ('IntersectionObserver' in window){
     var vio = new IntersectionObserver(function(en){
       en.forEach(function(x){
         var v = x.target;
         v.dataset.vis = x.isIntersecting ? '1' : '0';
-        if (x.isIntersecting) play(v); else if (!v.paused) v.pause();
+        if (x.isIntersecting) { attach(v); play(v); }
+        else if (!v.paused) v.pause();
       });
-    }, { rootMargin:'25% 0px' });
+    }, { rootMargin:'40% 0px' });
     vids.forEach(function(v){ vio.observe(v); });
   } else {
-    vids.forEach(function(v){ v.dataset.vis = '1'; });
-  }
-  // На телефоне отдаём облегчённый файл всем медузам: 3,4 МБ исходного
-  // качества там не нужны - крупная частица всё равно уменьшена, а трафик
-  // мобильный. Заодно это одна загрузка вместо двух.
-  var small = window.matchMedia && window.matchMedia('(max-width:900px)').matches;
-  if (small) {
-    load('assets/jelly-lite.mp4', vids);
-  } else {
-    load('assets/jelly.mp4', vids.filter(function(v){ return v.dataset.jelly === 'hq'; }));
-    load('assets/jelly-lite.mp4', vids.filter(function(v){ return v.dataset.jelly !== 'hq'; }));
+    vids.forEach(function(v){ v.dataset.vis = '1'; attach(v); });
   }
   var retry = function(){ vids.forEach(play); };
   ['pointerdown','touchstart','scroll','keydown'].forEach(function(ev){
