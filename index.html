@@ -105,6 +105,10 @@ a:hover{color:#EAF3FF}
 .navlink{transition:color .35s ease,opacity .35s ease;opacity:.62}
 .navlink:hover{opacity:1;color:#EAF3FF}
 .navlink.on{opacity:1;color:#7FF3E4}
+/* Ряд кнопок шапки. Перенос разрешён на случай, когда трём кнопкам и имени
+   не хватает ширины: вниз уходит только последняя кнопка, а не весь блок,
+   как было бы при переносе самого блока внутри header .wrap. */
+.hdactions{flex-wrap:wrap;justify-content:flex-end}
 /* Подъём при наведении - как в шаблоне. Чтобы кнопка не уезжала из-под
    курсора (наведение слетало и свечение мигало), под ней лежит невидимая
    подложка ::after, продлевающая зону наведения вниз на 10px. Сдвиг 3px
@@ -241,9 +245,23 @@ a:hover{color:#EAF3FF}
   /* Шапка в две строки: имя и кнопки сверху, разделы отдельной строкой.
      Раньше меню на телефоне просто скрывалось и навигации не оставалось. */
   header .wrap{padding-top:13px!important;padding-bottom:13px!important;flex-wrap:wrap;gap:12px!important}
-  .navlinks{display:flex!important;order:3;width:100%;gap:20px!important;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  /* Ряд разделов разведён по краям строки на всём мобильном диапазоне:
+     крайние пункты встают вровень с именем слева и кнопкой справа.
+
+     Кегль растёт вместе с шириной экрана. Раньше он был закреплён на 12px, и
+     чем шире экран, тем хуже это читалось: на 554px текст занимал половину
+     полосы, а между пятью пунктами вставало по 66px пустоты - ряд выглядел
+     мелким и разреженным одновременно. Причина одна: слишком мелкий шрифт для
+     строки, которую он должен заполнить.
+
+     Потолок 16px и max-width останавливают рост на планшете - без них на
+     900px промежутки снова разъехались бы за сотню пикселей.
+     Прокрутка оставлена страховкой на совсем узкий экран. */
+  .navlinks{display:flex!important;order:3;width:100%;max-width:660px;margin-left:auto;margin-right:auto;
+            justify-content:space-between;gap:clamp(3px,1.2vw,16px)!important;
+            overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .navlinks::-webkit-scrollbar{display:none}
-  .navlink{font-size:12px!important;white-space:nowrap;opacity:.8}
+  .navlink{font-size:clamp(9.5px,3vw,16px)!important;white-space:nowrap;opacity:.8}
 
   /* Слева отступ заметно больше остальных: в этот угол упирается дуга
      скругления - у карточек контактов она при 999px занимает всю высоту.
@@ -279,6 +297,17 @@ a:hover{color:#EAF3FF}
 @media (max-width:560px){
   .metr{grid-template-columns:1fr 1fr!important}
   .stgrow{grid-template-columns:1fr!important}
+
+  /* Аккордеон конвейера. Плитки идут столбиком, и одна общая панель под ними
+     оказывалась ниже всех пяти: чтобы прочитать описание, надо было мотать
+     вниз, а чтобы выбрать следующую стадию - обратно вверх. Панели переезжают
+     скриптом внутрь самого ряда, каждая за свою плитку; здесь только их вид.
+
+     Скрытую панель здесь убираем из потока насовсем. Наверху она прячется
+     видимостью, чтобы держать высоту контейнера, но в столбце это оставило бы
+     пустую строку грида высотой в экран - ровно ту дыру, от которой уходим. */
+  .stgrow>[data-pane].paneoff{display:none}
+  .stgpanes.panesoff{display:none!important}
   /* Внутренний отступ карточек не режем - его держит дуга скругления.
      Ширину под текст возвращаем с другой стороны: у самой страницы поля
      меньше, так карточка становится шире, а содержимое остаётся за дугой. */
@@ -290,11 +319,13 @@ a:hover{color:#EAF3FF}
      Здесь перенос разрешён, кегль уменьшен. */
   .selectable{font-size:17px!important;white-space:normal!important;overflow-wrap:anywhere}
 }
-/* Шапка на маленьких экранах: имя и две кнопки в сумме дают 338px и не
-   помещаются в 316-331px, доступные на 360-375px. Ужимаем кегль и поля. */
+/* Шапка на маленьких экранах: имя и кнопки не помещаются в 316-331px,
+   доступные на 360-375px. Ужимаем кегль, поля и промежуток. С появлением
+   переключателя языка кнопок стало три, поэтому поля режем сильнее. */
 @media (max-width:430px){
   .hdname{font-size:12px!important;letter-spacing:.1em!important}
-  header .cta{font-size:10.5px!important;padding:10px 14px!important}
+  header .cta{font-size:10.5px!important;padding:10px 12px!important}
+  .hdactions{gap:8px!important}
 }
 /* На тач-устройствах наведения нет: подсветка выбранной плитки не должна
    гаснуть от того, что палец коснулся ряда, а подъём кнопок - залипать. */
@@ -319,7 +350,8 @@ a:hover{color:#EAF3FF}
   /* на бумаге показываем все стадии подряд, а не стопкой в одной ячейке */
   [hidden]{display:block!important}
   .stgpanes{display:block!important}
-  .stgpanes>[data-pane]{visibility:visible!important;opacity:1!important}
+  /* панель может лежать и в ряду плиток: на телефоне она переезжает туда */
+  [data-pane]{display:block!important;visibility:visible!important;opacity:1!important}
 }
 </style>
 <script>
@@ -404,8 +436,335 @@ window.__initJelly = function(){
   });
   document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'visible') retry(); });
 };
+/* Двуязычие. Русский лежит прямо в разметке и остаётся языком по умолчанию:
+   без JS и для поисковых роботов страница верна - тот же приём, что у чисел
+   и возраста. Английский подставляется словарём по текстовым узлам, поэтому
+   второй копии файла не нужно: дизайн правится один раз, а не в двух версиях.
+
+   Ключ словаря - сам русский текст узла. Возврат на русский идёт не обратным
+   словарём, а из оригинала, сохранённого на самом узле: два разных русских
+   текста могут дать один и тот же английский, и обратный словарь на них
+   разошёлся бы. */
+window.__lang = 'ru';
+window.__i18n = (function(){
+
+  /*[dict]*/
+  var TEXT = {
+  "ПОВЕРХНОСТЬ":"SURFACE",
+  "м":"m",
+  "РУСЛАН АНИСИМОВ":"RUSLAN ANISIMOV",
+  "Стек":"Stack",
+  "Опыт":"Experience",
+  "Проекты":"Projects",
+  "Контакты":"Contacts",
+  "СВЯЗАТЬСЯ":"CONTACT",
+  "ОТКРЫТ К ПРЕДЛОЖЕНИЯМ":"OPEN TO OFFERS",
+  "Руслан":"Ruslan",
+  "Анисимов":"Anisimov",
+  "Убираю ручной труд из процессов компании: проектирую и вывожу в production AI-пайплайны, агентов, workflow и интеграции между сервисами.":"I take manual work out of company processes: I design and ship AI pipelines, agents, workflows and service-to-service integrations to production.",
+  "То, что я собираю, работает в проде и используется каждый день, а не остаётся пилотом.":"What I build runs in production and is used every day — it doesn't stay a pilot.",
+  "АНГЛИЙСКИЙ B1":"ENGLISH B1",
+  "ОПЫТ 4 ГОДА 9 МЕСЯЦЕВ":"4 YRS 9 MOS EXPERIENCE",
+  "РЕЗЮМЕ НА HH.RU ↗":"CV ON HH.RU ↗",
+  "г":"yr",
+  "мес":"mo",
+  "ОБЩИЙ ОПЫТ":"TOTAL EXPERIENCE",
+  "1 Г 5 М — AI ENGINEER":"1 YR 5 MO AI ENGINEER",
+  "мин":"min",
+  "ВЫПУСК КОМПЛЕКТА":"GRAPHICS SET RELEASE",
+  "БЫЛО 6–8 ЧАСОВ":"WAS 6–8 HOURS",
+  "РУЧНОГО ТРУДА":"OF MANUAL WORK",
+  "КОМАНДЫ":"ACROSS THE TEAM",
+  "AI-СИСТЕМ":"AI SYSTEMS",
+  "В ЕЖЕДНЕВНОЙ РАБОТЕ":"IN DAILY USE",
+  "Видео-демо конвейера":"Pipeline video demo",
+  "Портфолио":"Portfolio",
+  "Резюме на hh.ru":"CV on hh.ru",
+  "ЕСЛИ КОРОТКО / 01":"IN SHORT / 01",
+  "Собираю production-пайплайны на Python, n8n и LLM: от автотриггера до готового артефакта, без человека посередине.":"I build production pipelines with Python, n8n and LLMs: from the auto-trigger to the finished artifact, with no human in the middle.",
+  "ЕСЛИ КОРОТКО / 02":"IN SHORT / 02",
+  "Довожу до эксплуатации: свой backend, свой UI, мониторинг стадий, обработка сбоев и отказоустойчивость провайдеров.":"I take them all the way into operation: own backend, own UI, per-stage monitoring, failure handling and provider fault tolerance.",
+  "ЕСЛИ КОРОТКО / 03":"IN SHORT / 03",
+  "Результат считаю в цифрах: часы ручной работы превращаются в минуты, нагрузка на команду падает, системы живут без меня.":"I measure the result in numbers: hours of manual work turn into minutes, the load on the team drops, the systems keep running without me.",
+  "Сначала разбираюсь в процессе: что именно автоматизируем, зачем и где это может дать сбой. Инструмент подбираю под задачу, а не наоборот.":"I start by understanding the process: what exactly we are automating, why, and where it can break. I pick the tool for the task, not the other way round.",
+  "01 / СТЕК":"01 / STACK",
+  "На чём собираю системы":"What I build systems with",
+  "ОСНОВНОЕ / LLM И AI":"CORE / LLM AND AI",
+  "РАЗРАБОТКА":"DEVELOPMENT",
+  "АВТОМАТИЗАЦИЯ И ИНФРА":"AUTOMATION AND INFRA",
+  "02 / ОПЫТ РАБОТЫ":"02 / WORK EXPERIENCE",
+  "4 года 9 месяцев коммерческого опыта":"4 years 9 months of commercial experience",
+  "ИЗ НИХ 1 ГОД 5 МЕСЯЦЕВ — AI ENGINEER В PRODUCTION":"1 YEAR 5 MONTHS OF IT AS AN AI ENGINEER IN PRODUCTION",
+  "ФЕВ 2025 - ИЮНЬ 2026":"FEB 2025 - JUNE 2026",
+  "1 год 5 месяцев":"1 year 5 months",
+  "Разработка AI-решений и автоматизация бизнес-процессов на Python, n8n и LLM. Главный результат - production-конвейер генерации маркетинговой графики для публикации приложений в App Store и Google Play.":"Building AI solutions and automating business processes with Python, n8n and LLMs. The main result is a production pipeline that generates marketing graphics for App Store and Google Play releases.",
+  "Спроектировал и вывел в production конвейер генерации маркетинговой графики (десятки endpoints, собственные backend и UI).":"Designed and shipped to production a marketing graphics generation pipeline (dozens of endpoints, own backend and UI).",
+  "Выпуск комплекта графики сократился с 6-8 часов ручной работы до ~7 минут.":"Producing a graphics set went from 6-8 hours of manual work down to ~7 minutes.",
+  "Автоматизировал локализацию графики на 50 языков для App Store и Google Play: до 400 вариантов за прогон (8 экранов x 50 языков).":"Automated graphics localization into 50 languages for App Store and Google Play: up to 400 variants per run (8 screens x 50 languages).",
+  "Ручной труд дизайнеров и локализаторов снизился ~на 80%":"Manual work for designers and localizers dropped by ~80%",
+  ", человек подключается только на финальном апруве.":", a human steps in only at the final approval.",
+  "Создал и поддерживал 30+ AI-ботов и workflow (обработка данных, тикеты в Jira, генерация текстового и графического контента), которыми сотрудники пользуются ежедневно.":"Built and maintained 30+ AI bots and workflows (data processing, Jira tickets, text and image content generation) that colleagues use every day.",
+  "Построил оркестрацию 3 AI-провайдеров (Google Gemini, OpenAI API, kie.ai): автопереключение, retry, ротация ключей, мониторинг. Ручные вмешательства при сбоях сведены к единичным.":"Built orchestration across 3 AI providers (Google Gemini, OpenAI API, kie.ai): auto-failover, retries, key rotation, monitoring. Manual intervention on failures is down to rare exceptions.",
+  "МАРТ 2024 - ИЮЛЬ 2025":"MARCH 2024 - JULY 2025",
+  "Модератор / SMM / Content Creator, Bulldrop":"Moderator / SMM / Content Creator, Bulldrop",
+  "Модерация комьюнити и создание видеоконтента для платформы по игровым проектам (Roblox, Standoff и др.). Начинал модератором чата, перешёл в SMM и вырос до контент-креатора.":"Community moderation and video content for a platform built around gaming projects (Roblox, Standoff and others). Started as a chat moderator, moved into SMM and grew into a content creator.",
+  "Короткие видео (Shorts, Reels) для Instagram под тематику игровых проектов: съёмка и монтаж в After Effects.":"Short-form video (Shorts, Reels) for Instagram around gaming projects: shooting and editing in After Effects.",
+  "Генеративное видео через Veo 3 и Kling, озвучка через ElevenLabs: подбор голоса по промту и генерация речи точно под тайминг видеоряда. Ролики с AI-графикой без съёмочной команды.":"Generative video with Veo 3 and Kling, voice-over with ElevenLabs: prompt-based voice selection and speech generated exactly to the timing of the footage. Clips with AI graphics and no film crew.",
+  "ОКТ 2021 - МАРТ 2024":"OCT 2021 - MARCH 2024",
+  "2 года 6 месяцев":"2 years 6 months",
+  "Оператор call-центра, VOXYS":"Call center operator, VOXYS",
+  "Банковские проекты (заказчики: СБЕР, ВТБ): консультации по инвестициям, автокредитам и вкладам. Большой поток входящих и исходящих обращений, стабильное качество обслуживания по скриптам и стандартам заказчиков.":"Banking projects (clients: Sber, VTB): consulting on investments, car loans and deposits. A high volume of inbound and outbound calls, with consistent service quality in line with the clients' scripts and standards.",
+  "03 / ГЛАВНЫЙ ПРОЕКТ":"03 / MAIN PROJECT",
+  "PRODUCTION, РАБОТАЕТ СЕЙЧАС":"PRODUCTION, RUNNING RIGHT NOW",
+  "Metabot: конвейер генерации маркетинговой графики":"Metabot: a marketing graphics generation pipeline",
+  "Система готовит комплект графики для публикации приложений в App Store и Google Play: от автозапуска по статусу в Jira до 400 локализованных вариантов. Собственный backend и собственный веб-дашборд, человек включается только на финальном апруве.":"The system prepares a graphics set for App Store and Google Play releases: from an auto-start on a Jira status change through to 400 localized variants. Own backend and own web dashboard; a human steps in only at the final approval.",
+  "БЫЛО":"BEFORE",
+  "СТАЛО":"AFTER",
+  "Выпуск комплекта графики":"Producing a graphics set",
+  "6-8 часов ручной работы":"6-8 hours of manual work",
+  "~7 минут автоматом":"~7 minutes, automatically",
+  "Локализация":"Localization",
+  "вручную, язык за языком":"by hand, language by language",
+  "50 языков, до 400 вариантов":"50 languages, up to 400 variants",
+  "Участие человека":"Human involvement",
+  "на каждом шаге":"at every step",
+  "только финальный апрув":"final approval only",
+  "Работает сейчас, сотрудники пользуются ежедневно. Живой логер реальных прогонов закрыт токеном авторизации — показываю по запросу или на демо-созвоне.":"Running right now, colleagues use it daily. The live logger of real runs is behind an auth token — I can show it on request or on a demo call.",
+  "Смотреть видео-демо прогона":"Watch the run video demo",
+  "КАК УСТРОЕН КОНВЕЙЕР — 5 СТАДИЙ":"HOW THE PIPELINE WORKS — 5 STAGES",
+  "Запуск":"Trigger",
+  "Сбор данных":"Data collection",
+  "Генерация":"Generation",
+  "8 экранов, 4k":"8 screens, 4k",
+  "Апрув и финал":"Approval and finish",
+  "СТАДИЯ 01 / ЗАПУСК":"STAGE 01 / TRIGGER",
+  "Flow стартует автоматически по смене статуса задачи в Jira. Никакого ручного триггера: менеджер двигает тикет, конвейер подхватывает проект и уходит в работу.":"The flow starts automatically when a Jira issue changes status. No manual trigger: the manager moves the ticket, the pipeline picks the project up and gets to work.",
+  "СТАДИЯ 02 / СБОР ДАННЫХ":"STAGE 02 / DATA COLLECTION",
+  "Через web search и deep search модель собирает актуальный контекст под конкретный проект: популярных персонажей, живые фичи игры или утилиты. Контекст ложится в основу промтов, поэтому графика попадает в текущие ожидания аудитории, а не в общее место.":"Through web search and deep search the model gathers current context for the specific project: popular characters, the live features of the game or utility. That context becomes the base of the prompts, so the graphics land on what the audience expects right now rather than on something generic.",
+  "СТАДИЯ 03 / ГЕНЕРАЦИЯ ГРАФИКИ":"STAGE 03 / GRAPHICS GENERATION",
+  "Для каждого из 8 экранов рендерится мокап. Ради качества 4k изображение собирается последовательно в 2 части и склеивается. Фон генерируется отдельно и тайлово: шва не видно, а промты не раздуваются. Все промты структурированы в JSON, поэтому стадия воспроизводима и правится точечно.":"A mockup is rendered for each of the 8 screens. For 4k quality the image is built sequentially in 2 parts and stitched together. The background is generated separately and tiled: the seam is invisible and the prompts stay compact. All prompts are structured as JSON, so the stage is reproducible and can be edited point by point.",
+  "СТАДИЯ 04 / ЗАГОЛОВКИ И ЛОКАЛИЗАЦИЯ":"STAGE 04 / HEADLINES AND LOCALIZATION",
+  "Агент-дизайнер накладывает заголовок на чистое изображение и сам подбирает стиль оформления под конкретную картинку: стилей несколько, выбор зависит от композиции и цвета. Дальше комплект раскладывается на 50 языков.":"A designer agent places the headline onto the clean image and picks the styling for that particular picture itself: there are several styles, and the choice depends on composition and color. The set is then rolled out into 50 languages.",
+  "СТАДИЯ 05 / АПРУВ И ФИНАЛ":"STAGE 05 / APPROVAL AND FINISH",
+  "Человек проверяет результат в дашборде и апрувит. После апрува собирается версия под iPad, затем иконка и её локализация. Готовые артефакты выгружаются обратно в Jira, задача двигается по статусам дальше.":"A human checks the result in the dashboard and approves it. After approval the iPad version is assembled, then the icon and its localization. Finished artifacts are pushed back to Jira and the issue moves on through its statuses.",
+  "04 / ПРОЕКТЫ":"04 / PROJECTS",
+  "Собственные проекты и эксперименты":"Personal projects and experiments",
+  "В свободное время разрабатываю собственные проекты: довожу до рабочего состояния идеи, которые упрощают мою же работу.":"In my spare time I build my own projects: I take the ideas that make my own work easier and bring them to a working state.",
+  "ПЕТ-ПРОЕКТ / ВИДЕО В ДОКУМЕНТЫ":"PET PROJECT / VIDEO INTO DOCUMENTS",
+  "Разбирает видеозаписи созвонов и превращает их в готовые документы: техзадания для разработчиков, документацию, обучающие материалы. Вместо «пересмотри запись и напиши ТЗ» — файл в Google Docs через несколько минут после встречи.":"It breaks down call recordings and turns them into finished documents: specs for developers, documentation, training materials. Instead of “rewatch the recording and write the spec” — a file in Google Docs a few minutes after the meeting.",
+  "ЭТАП 01 / ПОДГОТОВКА":"STEP 01 / PREPARATION",
+  "Сервис нарезает и сжимает видео на части, чтобы уложиться в лимиты модели и не терять детали длинной записи.":"The service slices and compresses the video into parts to fit within the model's limits without losing detail from a long recording.",
+  "ЭТАП 02 / АНАЛИЗ":"STEP 02 / ANALYSIS",
+  "Gemini анализирует видео по частям, затем перепроверяет собственный результат — второй проход отсекает пропуски и домыслы.":"Gemini analyzes the video part by part, then double-checks its own result — the second pass cuts out omissions and guesswork.",
+  "ЭТАП 03 / СБОРКА":"STEP 03 / ASSEMBLY",
+  "Gemini 3.1 Pro берёт весь контекст — речь, скриншоты, задачи из видео — и собирает итоговый документ в нужном формате.":"Gemini 3.1 Pro takes the whole context — speech, screenshots, tasks from the video — and assembles the final document in the required format.",
+  "Готовое ТЗ выгружается в Google Docs с форматированием: заголовки, жирный текст, читаемая структура — документ сразу можно отдавать в работу.":"The finished spec is exported to Google Docs with formatting: headings, bold text, a readable structure — the document can go straight into work.",
+  "ПЕТ-ПРОЕКТ / GENERATIVE UI":"PET PROJECT / GENERATIVE UI",
+  "Свой хаб AI-сервисов":"My own AI services hub",
+  "Собрал нужные мне генеративные инструменты — Veo 3.1, Kling, nano-banana-2 и другие — в один собственный интерфейс. Вместо переключения между сервисами и разными личными кабинетами один UI под мои сценарии.":"I gathered the generative tools I need — Veo 3.1, Kling, nano-banana-2 and others — into a single interface of my own. Instead of switching between services and separate accounts, one UI built around my scenarios.",
+  "Функционал перенесён через агрегатор kie.ai и официальный API Gemini: единая точка запуска, свои пресеты и история генераций.":"The functionality is wired through the kie.ai aggregator and the official Gemini API: one launch point, my own presets and a history of generations.",
+  "РЕАЛТАЙМ / RAG":"REALTIME / RAG",
+  "Ассистент созвонов":"Call assistant",
+  "Перевод с английского в реальном времени, анализ диалога каждые несколько минут: тема разговора и настроение собеседника. Подсказки по ходу встречи. Поддержка ролей модели: под каждую роль в базу подгружались свои знания, и модель опиралась на них при анализе.":"Real-time translation from English, dialogue analysis every few minutes: the topic of the conversation and the mood of the other person. Hints as the meeting goes. Model roles are supported: each role had its own knowledge loaded into the knowledge base, and the model leaned on it during analysis.",
+  "Реалтайм требует быстрой лёгкой модели, поэтому качество вытянуто структурой промта, а не мощностью модели.":"Realtime needs a fast, lightweight model, so the quality is carried by the structure of the prompt rather than by the power of the model.",
+  "AI-озвучка":"AI voice-over",
+  "Озвучка видеопроектов через ElevenLabs: подбор голоса по промту под задачу и генерация речи точно под тайминг монтажа.":"Voice-over for video projects with ElevenLabs: prompt-based voice selection for the task and speech generated exactly to the edit timing.",
+  "Отдельно - AI-переозвучка сцен из фильмов: работа с интонацией, паузами и эмоциональной подачей, чтобы речь звучала естественно.":"Separately — AI re-dubbing of movie scenes: working with intonation, pauses and emotional delivery so the speech sounds natural.",
+  "Шаблонный workflow серийной генерации изображений: быстрый контур, который разворачивается под новую задачу за считанные минуты. Разбор с видео и пояснением лежит в папке-портфолио.":"A template workflow for batch image generation: a quick loop that redeploys for a new task in a matter of minutes. A breakdown with video and commentary is in the portfolio folder.",
+  "WEB / ДВЕ ВЕРСИИ ЛЕНДИНГА":"WEB / TWO LANDING PAGE VERSIONS",
+  "Лендинг каталога лестниц":"Staircase catalog landing page",
+  "Сделал две версии лендинга под один и тот же каталог, чтобы сравнить два пути к покупателю. Первая — классическая витрина: клиент знает, что ищет, и отбирает по типу конструкции фильтрами. Вторая — премиальная, с квиз-подбором: клиент не знает, что ему нужно, и приходит к решению через несколько вопросов.":"I made two versions of a landing page for the same catalog to compare two routes to the buyer. The first is a classic storefront: the client knows what they are looking for and filters by construction type. The second is premium, with a quiz: the client does not know what they need and arrives at a decision through a few questions.",
+  "Обе версии выложены и открываются по ссылке — это готовый продукт, а не картинка в Figma. Все кнопки ведут к расчёту и замеру, то есть к заявке. На каждой странице есть переключатель «Показать логику»: он поясняет, зачем нужен каждый блок и какую задачу закрывает.":"Both versions are deployed and open by link — a finished product, not a picture in Figma. Every button leads to a quote and an on-site measurement — that is, to a request. Each page has a “Show the logic” toggle: it explains why each block is there and what job it does.",
+  "ПОСМОТРЕТЬ ОБЕ ВЕРСИИ":"VIEW BOTH VERSIONS",
+  "05 / О СЕБЕ":"05 / ABOUT ME",
+  "Как я работаю":"How I work",
+  "Ценность системы не в том, что она собрана, а в том, что она продолжает работать без меня.":"The value of a system is not that it got built, but that it keeps running without me.",
+  "Начинаю с процесса, а не с инструмента: где команда теряет часы, что обязано остаться за человеком, что сломается, когда шаг уберут. Модель подбираю под задачу - нередко достаточно лёгкой и точно собранного промта.":"I start with the process, not the tool: where the team loses hours, what has to stay with a human, what breaks when a step is removed. I pick the model for the task - often a light one plus a precisely built prompt is enough.",
+  "Дальше эксплуатация: обработка ошибок, отказоустойчивость провайдеров, логи и мониторинг по стадиям. Система должна сама показывать, где она упала, и чиниться без археологии.":"Then comes operation: error handling, provider fault tolerance, logs and per-stage monitoring. A system should show where it fell over by itself, and be fixable without archaeology.",
+  "Новые модели и инструменты тестирую постоянно, но в проект идут те, что выдержали проверку реальной задачей, а не те, что на слуху.":"I test new models and tools constantly, but the ones that make it into a project are those that held up against a real task, not those that are simply being talked about.",
+  "ЯЗЫКИ":"LANGUAGES",
+  "Русский — родной":"Russian — native",
+  "Английский — B1, средний":"English — B1, intermediate",
+  "ВОЗРАСТ":"AGE",
+  "Общий опыт — 4 года 9 месяцев":"Total experience — 4 years 9 months",
+  "СТАТУС":"STATUS",
+  "Открыт к предложениям":"Open to offers",
+  "по AI-инженерии и автоматизации":"in AI engineering and automation",
+  "06 / КОНТАКТЫ":"06 / CONTACTS",
+  "Связаться":"Get in touch",
+  "Открыт к предложениям по AI-инженерии: пайплайны, агенты, автоматизация. Отвечаю в Telegram и на почте.":"Open to offers in AI engineering: pipelines, agents, automation. I reply on Telegram and by email.",
+  "ПОРТФОЛИО":"PORTFOLIO",
+  "2 проекта с разбором":"2 projects with breakdowns",
+  "РУСЛАН АНИСИМОВ / AI ENGINEER":"RUSLAN ANISIMOV / AI ENGINEER"
+};
+  /*[/dict]*/
+
+  /* Значения атрибутов: подписи для скринридеров, метки глубиномера и имя,
+     под которым сохраняется PDF. Сам файл резюме один и остаётся русским. */
+  var ATTR = {
+    'Разделы':'Sections',
+    'Скачать резюме в PDF':'Download CV as PDF',
+    'Анисимов Руслан Андреевич - AI Engineer.pdf':'Ruslan Anisimov - AI Engineer.pdf',
+    'Стадия 01':'Stage 01',
+    'Стадия 02':'Stage 02',
+    'Стадия 03':'Stage 03',
+    'Стадия 04':'Stage 04',
+    'Стадия 05':'Stage 05',
+    '0 М / ПОВЕРХНОСТЬ':'0 M / SURFACE',
+    '200 М / СТЕК':'200 M / STACK',
+    '600 М / ОПЫТ РАБОТЫ':'600 M / WORK EXPERIENCE',
+    '1200 М / ГЛАВНЫЙ ПРОЕКТ':'1200 M / MAIN PROJECT',
+    '2000 М / ПРОЕКТЫ':'2000 M / PROJECTS',
+    '3000 М / О СЕБЕ':'3000 M / ABOUT ME',
+    '3800 М / ДНО':'3800 M / THE BOTTOM'
+  };
+  var ATTRLIST = ['aria-label', 'title', 'download', 'data-zone'];
+
+  /* Шапка документа: заголовок вкладки, описание и og-теги. Картинки превью
+     остаются русскими - они отрисованы заранее и на язык не завязаны. */
+  var TITLE_EN = 'Ruslan Anisimov - AI Engineer';
+  var DESC_EN = 'AI Engineer with 4 years 9 months of commercial experience. I take manual work out of company processes: production pipelines on Python, n8n and LLMs. Graphics set delivery cut from 6-8 hours to ~7 minutes, team manual work down by 80%.';
+  var SHORT_EN = 'Business process automation with Python, n8n and LLMs. 6-8 hours of manual work down to ~7 minutes, -80% manual work across the team, 30+ AI systems in production.';
+  var ALT_EN = 'Ruslan Anisimov - AI Engineer. 4 years 9 months of experience, ~7 minutes to produce a graphics set, -80% manual work across the team, 30+ AI systems in production.';
+  var HEAD = [
+    ['title', null, TITLE_EN],
+    ['meta[name="description"]', 'content', DESC_EN],
+    ['meta[property="og:site_name"]', 'content', TITLE_EN],
+    ['meta[property="og:title"]', 'content', TITLE_EN],
+    ['meta[property="og:description"]', 'content', SHORT_EN],
+    ['meta[property="og:image:alt"]', 'content', ALT_EN],
+    ['meta[property="og:locale"]', 'content', 'en_US'],
+    ['meta[name="twitter:title"]', 'content', TITLE_EN],
+    ['meta[name="twitter:description"]', 'content', SHORT_EN]
+  ];
+
+  /* Кнопка показывает язык, на который переключит, а не текущий: так по ней
+     сразу понятно, что произойдёт по нажатию. */
+  var BTN = {
+    ru: { label:'EN', aria:'Switch to English', lang:'en' },
+    en: { label:'RU', aria:'Переключить на русский', lang:'ru' }
+  };
+
+  var SKIP = { SCRIPT:1, STYLE:1, NOSCRIPT:1, TEMPLATE:1 };
+  // Обходим дерево сами, а не через TreeWalker: фильтр у него в разных
+  // браузерах принимает то функцию, то объект, а поведение тут примитивное.
+  var each = function(node, fn){
+    for (var n = node.firstChild; n; n = n.nextSibling){
+      if (n.nodeType === 3) fn(n);
+      else if (n.nodeType === 1 && !SKIP[n.nodeName]) each(n, fn);
+    }
+  };
+  var SPACE = /^(\s*)([\s\S]*?)(\s*)$/;
+  var toEn = function(n){
+    if (n.__ru !== undefined) return;              // узел уже переведён
+    var raw = n.nodeValue, m = SPACE.exec(raw);
+    var en = TEXT[m[2]];
+    if (!en) return;
+    n.__ru = raw;                                  // отступы вокруг сохраняем
+    n.nodeValue = m[1] + en + m[3];
+  };
+  var toRu = function(n){
+    if (n.__ru === undefined) return;
+    n.nodeValue = n.__ru;
+    delete n.__ru;
+  };
+
+  var attrs = function(en){
+    ATTRLIST.forEach(function(a){
+      [].forEach.call(document.querySelectorAll('[' + a + ']'), function(el){
+        var box = el.__i18n || (el.__i18n = {});
+        if (en){
+          if (box[a] !== undefined) return;
+          var v = el.getAttribute(a);
+          if (!ATTR[v]) return;
+          box[a] = v;
+          el.setAttribute(a, ATTR[v]);
+        } else if (box[a] !== undefined){
+          el.setAttribute(a, box[a]);
+          delete box[a];
+        }
+      });
+    });
+  };
+
+  var head = function(en){
+    HEAD.forEach(function(h){
+      [].forEach.call(document.querySelectorAll(h[0]), function(el){
+        if (en){
+          if (el.__ruv === undefined) el.__ruv = h[1] ? el.getAttribute(h[1]) : el.textContent;
+          if (h[1]) el.setAttribute(h[1], h[2]); else el.textContent = h[2];
+        } else if (el.__ruv !== undefined){
+          if (h[1]) el.setAttribute(h[1], el.__ruv); else el.textContent = el.__ruv;
+          delete el.__ruv;
+        }
+      });
+    });
+  };
+
+  var paintBtn = function(){
+    var b = document.getElementById('langbtn');
+    if (!b) return;
+    var s = BTN[window.__lang] || BTN.ru;
+    b.textContent = s.label;
+    b.setAttribute('lang', s.lang);
+    b.setAttribute('aria-label', s.aria);
+    b.setAttribute('title', s.aria);
+  };
+
+  var apply = function(lang){
+    var en = lang === 'en';
+    window.__lang = en ? 'en' : 'ru';
+    each(document.body, en ? toEn : toRu);
+    attrs(en);
+    head(en);
+    document.documentElement.setAttribute('lang', window.__lang);
+    paintBtn();
+    // Возраст и подпись глубиномера собираются скриптом, готовой строки в
+    // разметке нет - их перерисовываем отдельно.
+    if (window.__renderAge) window.__renderAge();
+    if (window.__paintZone) window.__paintZone();
+  };
+
+  // По умолчанию русский. Автоопределение по языку браузера сознательно не
+  // включаем: язык меняется только явным нажатием, адрес с ?lang=en можно
+  // отправить сразу на английском.
+  var read = function(){
+    var q = /[?&]lang=(ru|en)\b/i.exec(location.search);
+    if (q) return q[1].toLowerCase();
+    try {
+      var s = localStorage.getItem('lang');
+      if (s === 'ru' || s === 'en') return s;
+    } catch (e) {}
+    return 'ru';
+  };
+  var save = function(l){ try { localStorage.setItem('lang', l); } catch (e) {} };
+  var url = function(l){
+    if (!window.history || !history.replaceState) return;
+    var s = location.search.replace(/([?&])lang=(ru|en)\b&?/i, '$1').replace(/[?&]$/, '');
+    if (l === 'en') s = s ? s + '&lang=en' : '?lang=en';
+    try { history.replaceState(null, '', location.pathname + s + location.hash); } catch (e) {}
+  };
+  var toggle = function(){
+    var next = window.__lang === 'en' ? 'ru' : 'en';
+    apply(next); save(next); url(next);
+  };
+
+  var init = function(){
+    var l = read();
+    apply(l);
+    if (l === 'en') url(l);
+    var b = document.getElementById('langbtn');
+    if (b) b.addEventListener('click', toggle);
+  };
+
+  return { init:init, apply:apply, toggle:toggle };
+})();
 window.__initResume = function(){
   if (window.__resumeInited) return; window.__resumeInited = true;
+
+  // Язык применяем первым делом: шапка видна сразу, и подмена текста после
+  // первой отрисовки читалась бы как мигание.
+  window.__i18n.init();
 
   // Браузер сам восстанавливает позицию прокрутки при обновлении страницы,
   // из-за чего погружение начиналось не с 0 м. Открываем всегда с поверхности,
@@ -465,6 +824,52 @@ window.__initResume = function(){
     });
   });
 
+  // Плавная подводка кадра. Родной behavior:'smooth' идёт своё фиксированное
+  // время независимо от расстояния: на коротком шаге это нормально, а на
+  // перегоне в пару тысяч пикселей выходит бросок за полсекунды, за которым не
+  // уследить - непонятно, куда уехала страница. Поэтому ведём сами: чем длиннее
+  // путь, тем дольше ход, разгон и торможение мягкие.
+  var scrollAnim = 0;
+  var glideTo = function(y){
+    if (scrollAnim) cancelAnimationFrame(scrollAnim);
+    var max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    y = Math.max(0, Math.min(Math.round(y), max));
+    var from = window.scrollY, dist = y - from;
+    if (!dist) return;
+    if (reduce || !window.requestAnimationFrame){ window.scrollTo(0, y); return; }
+
+    // Родную плавность на время хода снимаем: иначе каждый наш кадр браузер
+    // возьмётся доводить ещё и сам, и движение начнёт запаздывать за расчётом.
+    var root = document.documentElement, prevBehavior = root.style.scrollBehavior;
+    root.style.scrollBehavior = 'auto';
+
+    var dur = Math.max(600, Math.min(1400, 420 + Math.abs(dist) * 0.5));
+    var t0 = null;
+    var done = function(){
+      scrollAnim = 0;
+      root.style.scrollBehavior = prevBehavior;
+      window.removeEventListener('wheel', giveUp);
+      window.removeEventListener('touchstart', giveUp);
+    };
+    // Тронул экран или колесо - перестаём вести и отдаём прокрутку человеку:
+    // бороться с его пальцем страница не должна.
+    var giveUp = function(){ if (scrollAnim) cancelAnimationFrame(scrollAnim); done(); };
+    window.addEventListener('wheel', giveUp, { passive:true });
+    window.addEventListener('touchstart', giveUp, { passive:true });
+
+    var step = function(ts){
+      if (t0 === null) t0 = ts;
+      var p = Math.min(1, (ts - t0) / dur);
+      // мягкий разгон и такое же торможение - за таким движением глаз следит,
+      // в отличие от рывка с места
+      var e = p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+      window.scrollTo(0, Math.round(from + dist * e));
+      if (p < 1) scrollAnim = requestAnimationFrame(step);
+      else done();
+    };
+    scrollAnim = requestAnimationFrame(step);
+  };
+
   document.addEventListener('click', function(e){
     var t = e.target.closest ? e.target.closest('[data-stage]') : null;
     if (!t) return;
@@ -476,14 +881,76 @@ window.__initResume = function(){
     });
     [].forEach.call(document.querySelectorAll('[data-pane]'), function(p){
       var on = p.getAttribute('data-pane') === id;
-      // прячем видимостью, а не display: панель остаётся в потоке и держит
-      // высоту контейнера, поэтому страница не меняет размер и фон не уезжает
+      // Наверху прячем видимостью, а не display: панель остаётся в потоке и
+      // держит высоту контейнера, поэтому страница не меняет размер и фон не
+      // уезжает. В аккордеоне тот же класс убирает панель из потока совсем -
+      // разницу задаёт медиазапрос, а не скрипт.
       p.classList.toggle('paneoff', !on);
       p.setAttribute('aria-hidden', on ? 'false' : 'true');
       p.removeAttribute('hidden');
       if (on) { p.classList.remove('pnl'); void p.offsetWidth; p.classList.add('pnl'); }
     });
+
+    // В аккордеоне описание раскрывается под самой плиткой, поэтому имеет
+    // смысл только одно положение кадра: выбранная плитка сверху, описание
+    // под ней. Подводим плитку под шапку и оставляем весь остальной экран
+    // тексту - так после нажатия видно и что выбрано, и что раскрылось.
+    //
+    // Раньше здесь стояла компенсация: плитку удерживали ровно там, где на
+    // неё нажали. Свернувшаяся выше панель при этом не сдвигала её с места,
+    // но кадр никуда не ехал - если нажали у нижнего края, раскрытый текст
+    // так и оставался за экраном, а сама подгонка читалась как рывок.
+    //
+    // Позицию плитки складываем по offsetTop, а не берём из
+    // getBoundingClientRect. Причина: весь блок конвейера лежит внутри .rv,
+    // который появляется через transform, а сама плитка на наведении
+    // приподнимается на 3px. Экранные координаты во время этих сдвигов врут
+    // на десяток-другой пикселей - ровно настолько кадр и промахивался, пряча
+    // верх плитки под шапку. offsetTop считает раскладку и трансформаций не
+    // видит, поэтому наводка одинаково точна и посреди анимации появления.
+    if (accMQ && accMQ.matches){
+      var hd = document.querySelector('header');
+      var pad = (hd ? hd.offsetHeight : 0) + 12;
+      var y = 0;
+      for (var n = t; n; n = n.offsetParent) y += n.offsetTop;
+      y = Math.max(0, Math.round(y - pad));
+      glideTo(y);
+    }
   });
+
+  // Аккордеон конвейера на телефоне. На широком экране пять плиток стоят в
+  // ряд, панель под ними одна и всегда на виду. В столбик же панель уезжала
+  // ниже всех пяти плиток, и чтение превращалось в качели: вниз за описанием,
+  // вверх за следующей стадией.
+  //
+  // Разметку не дублируем - панели физически переезжают из .stgpanes в сам
+  // ряд и обратно. Поэтому текст, id и связка aria-controls остаются те же,
+  // а десктоп и печать перестановки не замечают.
+  var stgrow = document.querySelector('.stgrow');
+  var stgpanes = document.querySelector('.stgpanes');
+  if (stgrow && stgpanes && window.matchMedia){
+    var accMQ = window.matchMedia('(max-width:560px)');
+    var toAccordion = function(){
+      [].forEach.call(stgrow.querySelectorAll('[data-stage]'), function(btn){
+        var p = document.getElementById(btn.getAttribute('aria-controls'));
+        // ставим сразу за плиткой: nextSibling - пробельный узел разметки,
+        // вставка перед ним и даёт место вплотную под кнопкой
+        if (p) stgrow.insertBefore(p, btn.parentNode.nextSibling);
+      });
+      stgpanes.classList.add('panesoff');
+    };
+    var toColumn = function(){
+      // порядок восстанавливается сам: в ряду панели лежат по возрастанию
+      [].forEach.call(stgrow.querySelectorAll('[data-pane]'), function(p){
+        stgpanes.appendChild(p);
+      });
+      stgpanes.classList.remove('panesoff');
+    };
+    var syncAcc = function(){ if (accMQ.matches) toAccordion(); else toColumn(); };
+    syncAcc();
+    if (accMQ.addEventListener) accMQ.addEventListener('change', syncAcc);
+    else if (accMQ.addListener) accMQ.addListener(syncAcc);
+  }
 
   // Копирование контакта по клику. mailto открывает почтовый клиент, а если
   // он не настроен - не происходит вообще ничего, и человек остаётся ни с чем.
@@ -509,7 +976,7 @@ window.__initResume = function(){
     var done = function(){
       if (!tag) return;
       if (!t.dataset.copyIdle) t.dataset.copyIdle = tag.textContent;
-      tag.textContent = 'СКОПИРОВАНО';
+      tag.textContent = window.__lang === 'en' ? 'COPIED' : 'СКОПИРОВАНО';
       clearTimeout(t._copyTimer);
       t._copyTimer = setTimeout(function(){ tag.textContent = t.dataset.copyIdle; }, 1800);
     };
@@ -521,13 +988,20 @@ window.__initResume = function(){
   var links = [].slice.call(document.querySelectorAll('.navlink'));
   var zone = document.getElementById('depthzone');
   var secs = [].slice.call(document.querySelectorAll('[data-zone]'));
+  // Текущую секцию помним отдельно: при смене языка подпись глубиномера надо
+  // перерисовать сразу, а не ждать, пока посетитель что-нибудь прокрутит.
+  var curSec = null;
+  window.__paintZone = function(){
+    if (zone && curSec) zone.textContent = curSec.getAttribute('data-zone');
+  };
   if (hasIO && secs.length){
     var io3 = new IntersectionObserver(function(en){
       en.forEach(function(x){
         if (!x.isIntersecting) return;
         var id = x.target.id;
         links.forEach(function(l){ l.classList.toggle('on', l.getAttribute('href') === '#' + id); });
-        if (zone) zone.textContent = x.target.getAttribute('data-zone');
+        curSec = x.target;
+        window.__paintZone();
       });
     }, { rootMargin:'-45% 0px -50% 0px' });
     secs.forEach(function(s){ io3.observe(s); });
@@ -582,22 +1056,32 @@ window.__initResume = function(){
   // только статику, но дату берём у посетителя, поэтому число обновляется само
   // и править резюме руками не нужно. В разметке лежит актуальное значение -
   // без JS и для парсеров страница остаётся верной.
-  [].forEach.call(document.querySelectorAll('[data-age]'), function(el){
-    var b = el.getAttribute('data-age').split('-');
-    var now = new Date();
-    // сравниваем по локальному календарю: разбор строки как UTC мог бы
-    // сдвинуть день рождения на сутки в отрицательных часовых поясах
-    var years = now.getFullYear() - (+b[0]);
-    var md = (now.getMonth() + 1) * 100 + now.getDate();
-    if (md < (+b[1]) * 100 + (+b[2])) years--;
-    var t = years % 100, d = years % 10, word;
-    if (t > 10 && t < 20) word = 'лет';
-    else if (d === 1) word = 'год';
-    else if (d >= 2 && d <= 4) word = 'года';
-    else word = 'лет';
-    var s = years + ' ' + word;
-    el.textContent = el.hasAttribute('data-age-upper') ? s.toUpperCase() : s;
-  });
+  // Вынесено в функцию: переключатель языка перерисовывает возраст заново -
+  // склонение у русского и английского разное, готовой строкой не обойтись.
+  window.__renderAge = function(){
+    var isEn = window.__lang === 'en';
+    [].forEach.call(document.querySelectorAll('[data-age]'), function(el){
+      var b = el.getAttribute('data-age').split('-');
+      var now = new Date();
+      // сравниваем по локальному календарю: разбор строки как UTC мог бы
+      // сдвинуть день рождения на сутки в отрицательных часовых поясах
+      var years = now.getFullYear() - (+b[0]);
+      var md = (now.getMonth() + 1) * 100 + now.getDate();
+      if (md < (+b[1]) * 100 + (+b[2])) years--;
+      var word;
+      if (isEn) word = years === 1 ? 'year old' : 'years old';
+      else {
+        var t = years % 100, d = years % 10;
+        if (t > 10 && t < 20) word = 'лет';
+        else if (d === 1) word = 'год';
+        else if (d >= 2 && d <= 4) word = 'года';
+        else word = 'лет';
+      }
+      var s = years + ' ' + word;
+      el.textContent = el.hasAttribute('data-age-upper') ? s.toUpperCase() : s;
+    });
+  };
+  window.__renderAge();
 
   // Перелив заголовков: разводим фазы, иначе все переливаются синхронно.
   // :nth-of-type не годится - элементы в разных родителях и с разными тегами.
@@ -749,7 +1233,8 @@ window.__initResume = function(){
         <a class="navlink" data-nav href="#projects" style="font-family:var(--mn);font-size:14px;letter-spacing:.12em;color:#93AECD">Проекты</a>
         <a class="navlink" data-nav href="#contacts" style="font-family:var(--mn);font-size:14px;letter-spacing:.12em;color:#93AECD">Контакты</a>
       </nav>
-      <div style="display:flex;align-items:center;gap:12px">
+      <div class="hdactions" style="display:flex;align-items:center;gap:12px">
+        <button type="button" id="langbtn" class="cta gfill-mute" lang="en" aria-label="Switch to English" title="Switch to English" style="font-family:var(--mn);font-size:11.5px;letter-spacing:.12em;padding:11px 20px;border-radius:999px;border:0;cursor:pointer">EN</button>
         <a class="cta gfill-mute" href="Anisimov-Ruslan-AI-Engineer.pdf" download="Анисимов Руслан Андреевич - AI Engineer.pdf" aria-label="Скачать резюме в PDF" style="font-family:var(--mn);font-size:11.5px;letter-spacing:.12em;padding:11px 20px;border-radius:999px">PDF</a>
         <a class="cta gfill-soft" href="#contacts" style="font-family:var(--mn);font-size:11.5px;letter-spacing:.12em;color:#EAF3FF;padding:11px 22px;border-radius:999px">СВЯЗАТЬСЯ</a>
       </div>
