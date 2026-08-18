@@ -11,21 +11,29 @@
 <meta property="og:site_name" content="Руслан Анисимов - AI Engineer">
 <meta property="og:title" content="Руслан Анисимов - AI Engineer">
 <meta property="og:description" content="Автоматизация бизнес-процессов на Python, n8n и LLM. 6-8 часов ручной работы - до ~7 минут, -80% ручного труда команды, 30+ AI-систем в проде.">
-<meta property="og:image" content="https://ruslananisimovart.github.io/resume/assets/og.jpg">
+<!-- Картинка превью ровно одна. Двух og:image здесь быть не должно: по
+     спецификации это законно, но парсеры на практике путаются - одни берут
+     последнюю вместо первой, другие склеивают размеры от первой с адресом
+     второй и получают квадрат, объявленный как 1200x630. При несовпадении
+     заявленного и реального размера часть клиентов не рисует превью вовсе.
+     Квадратный кадр отдельной картинкой всё равно не подсунуть - клиент
+     берёт первую, поэтому он решён композицией самой широкой: центральная
+     обрезка оставляет главное внутри.
+
+     ?v= в адресе - против кеша. Платформы кешируют превью по адресу и при
+     неизменном адресе могут не перезапросить файл никогда. При каждой
+     перерисовке баннера номер надо поднимать, иначе старая картинка так и
+     останется висеть у всех, кто её однажды увидел. -->
+<meta property="og:image" content="https://ruslananisimovart.github.io/resume/assets/og.jpg?v=20260818">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Руслан Анисимов - AI Engineer. Опыт 2 года 5 месяцев, ~7 минут на выпуск комплекта графики, -80% ручного труда команды, 30+ AI-систем в проде.">
-<meta property="og:image" content="https://ruslananisimovart.github.io/resume/assets/og-square.jpg">
-<meta property="og:image:type" content="image/jpeg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="1200">
 <meta property="og:image:alt" content="Руслан Анисимов - AI Engineer. Опыт 2 года 5 месяцев, ~7 минут на выпуск комплекта графики, -80% ручного труда команды, 30+ AI-систем в проде.">
 <meta property="og:locale" content="ru_RU">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Руслан Анисимов - AI Engineer">
 <meta name="twitter:description" content="Автоматизация бизнес-процессов на Python, n8n и LLM. 6-8 часов ручной работы - до ~7 минут, -80% ручного труда команды, 30+ AI-систем в проде.">
-<meta name="twitter:image" content="https://ruslananisimovart.github.io/resume/assets/og.jpg">
+<meta name="twitter:image" content="https://ruslananisimovart.github.io/resume/assets/og.jpg?v=20260818">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="assets/favicon-16.png" sizes="16x16" type="image/png">
